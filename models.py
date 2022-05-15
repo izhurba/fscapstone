@@ -28,9 +28,9 @@ Have title and release year
 class Person(db.Model):  
   __tablename__ = 'People'
 
-  id = Column(Integer, primary_key=True)
-  name = Column(String)
-  catchphrase = Column(String)
+  id = Column(db.Integer, primary_key=True)
+  name = Column(db.String)
+  catchphrase = Column(db.String)
 
   def __init__(self, name, catchphrase=""):
     self.name = name
