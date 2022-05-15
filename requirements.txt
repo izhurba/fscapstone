@@ -1,4 +1,5 @@
 alembic==1.6.5
+authlib>=1.0
 click==8.0.1
 Flask==1.1.2
 Flask-Cors==3.0.10
@@ -14,6 +15,8 @@ MarkupSafe==2.0.1
 psycopg2-binary==2.9.1
 python-dateutil==2.8.1
 python-editor==1.0.4
+python-dotenv>=0.19.2
+requests>=2.27.1
 six==1.16.0
 SQLAlchemy==1.4.18
 Werkzeug==2.0.1
