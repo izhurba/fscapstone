@@ -126,6 +126,11 @@ def verify_decode_jwt(token):
     }, 400)
 
 def requires_auth(permission=''):
+    if (permission==''):
+        raise(AuthError({
+            'code':'No auth provided',
+            'description':'Blank or missing permission'
+        }, 400))
     def requires_auth_decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -136,3 +141,4 @@ def requires_auth(permission=''):
 
         return wrapper
     return 
+

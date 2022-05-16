@@ -2,6 +2,7 @@ import os
 from sqlalchemy import Column, String, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
+from flask_migrate import Migrate
 
 database_path = os.environ['DATABASE_URL']
 if database_path.startswith("postgres://"):
@@ -19,6 +20,7 @@ def setup_db(app, database_path=database_path):
     db.app = app
     db.init_app(app)
     db.create_all()
+    migrate = Migrate(app, db)
 
 
 '''
@@ -60,7 +62,7 @@ class leadTech(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   name = db.Column(db.String, nullable=False)
   employeeID = db.Column(db.Integer, nullable=False)
-  fieldtech_ids = db.Column(db.Array(db.Integer), db.ForeignKey(fieldTech.id), nullable=False)
+  fieldtech_ids = db.Column(db.Integer, db.ForeignKey(fieldTech.id), nullable=False)
   senior = db.relationship('seniorTech', backref='leadtech', lazy='joined', cascade='all, delete')
 
 
@@ -93,8 +95,8 @@ class seniorTech(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   name = db.Column(db.String, nullable=False)
   employeeID = db.Column(db.Integer, nullable=False)
-  fieldtech_ids = db.Column(db.Array(db.Integer), db.ForeignKey(fieldTech.id), nullable=False)
-  leadtech_ids = db.Column(db.Array(db.Integer), db.ForeignKey(leadTech.id), nullable=False)
+  fieldtech_ids = db.Column(db.Integer, db.ForeignKey(fieldTech.id), nullable=False)
+  leadtech_ids = db.Column(db.Integer, db.ForeignKey(leadTech.id), nullable=False)
 
 
   def __init__(self, name, employeeID, fieldtech_ids, leadtech_ids):
