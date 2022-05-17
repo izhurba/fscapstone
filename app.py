@@ -1,25 +1,33 @@
 import os
+from urllib import response
 from flask import Flask, request, abort, jsonify, redirect
 from models import setup_db, fieldTech, leadTech, seniorTech
 from auth import AuthError, requires_auth
 from flask_cors import CORS
-import json
+import json, requests
 
 def create_app(test_config=None):
     app = Flask(__name__)
     setup_db(app)
     CORS(app)
 
-    @app.route('/')
-    def check_token():
-        return request.url_rule.rule
-        #fullURL = request.path
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Headers',
+                            'Content-Type,Authorization,true')
+        response.headers.add('Access-Control-Allow-Methods',
+                            'GET,PATCH,POST,DELETE,OPTIONS')
+        return response
+
 
     @app.route('/login')
     def auth_login():
         return redirect("https://dev-vqzjqwjq.us.auth0.com/authorize?response_type=token&client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&redirect_uri=http://localhost:5000/&audience=repairshop")
 
-
+    @app.route('/logout')
+    def auth_logout():
+        return redirect("https://dev-vqzjqwjq.us.auth0.com/v2/logout?client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&returnTo='http://localhost:5000/")
+    
     # Endpoint to get field techs
 
 
