@@ -1,13 +1,25 @@
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify, redirect
 from models import setup_db, fieldTech, leadTech, seniorTech
 from auth import AuthError, requires_auth
 from flask_cors import CORS
+import json
+
+CURRTOKEN = ''
 
 def create_app(test_config=None):
     app = Flask(__name__)
     setup_db(app)
     CORS(app)
+
+    @app.route('/')
+    def disp_token():
+        return CURRTOKEN
+
+    @app.route('/login')
+    def auth_login():
+        return redirect("https://dev-vqzjqwjq.us.auth0.com/authorize?response_type=token&client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&redirect_uri=http://localhost:5000/&audience=repairshop")
+
 
     # Endpoint to get field techs
 
@@ -41,168 +53,164 @@ def create_app(test_config=None):
     # Endpoint to get lead techs
 
     @app.route('/seniortechs')
-    def get_seniortechs():
-        if requires_auth('get:seniortech'):
+    @requires_auth('get:seniortech')
+    def get_seniortechs(jwt):
+        try:
             sTechs = seniorTech.query.all()
-            try:
-                if not sTechs:
-                    abort(404)
+            if not sTechs:
+                abort(404)
 
-                return jsonify({
-                    'success': True,
-                    'seniortechs': [tech.format() for tech in sTechs]
-                }), 200
-            except Exception as e:
-                print(e)
-                abort(422)
-        abort(403)
+            return jsonify({
+                'success': True,
+                'seniortechs': [tech.format() for tech in sTechs]
+            }), 200
+        except Exception as e:
+            print(e)
+            abort(422)
+
 
     # Endpoint to create a new field tech
 
     @app.route('/fieldtechs', methods=['POST'])
-    def post_fieldtech():
-        if requires_auth('post:fieldtech'):
-            data = request.get_json()
+    @requires_auth('post:fieldtech')
+    def post_fieldtech(jwt):
+        data = request.get_json()
 
-            try:
-                newFTech = fieldTech(
-                    name= data['name'],
-                    employeeID=data['employeeID']
-                )
-                newFTech.insert()
+        try:
+            newFTech = fieldTech(
+                name= data['name'],
+                employeeID=data['employeeID']
+            )
+            newFTech.insert()
 
-                fieldTechs = fieldTech.query.all()
+            fieldTechs = fieldTech.query.all()
 
-                return jsonify({
-                    'success': True,
-                    'fieldtechs': fieldTechs
-                }), 200
-            except Exception as e:
-                print(e)
-                abort(400)
-        abort(403)
+            return jsonify({
+                'success': True,
+                'fieldtechs': fieldTechs
+            }), 200
+        except Exception as e:
+            print(e)
+            abort(400)
 
     # Endpoint to create a new lead tech
 
     @app.route('/leadtechs', methods=['POST'])
-    def post_leadtech():
-        if requires_auth('post:leadtech'):
-            data = request.get_json()
+    @requires_auth('post:leadtech')
+    def post_leadtech(jwt):
+        data = request.get_json()
 
-            try:
-                newLTech = leadTech(
-                    name= data['name'],
-                    employeeID=data['employeeID'],
-                    fieldtech_ids=['fieldtech_ids']
-                )
-                newLTech.insert()
+        try:
+            newLTech = leadTech(
+                name= data['name'],
+                employeeID=data['employeeID'],
+                fieldtech_ids=['fieldtech_ids']
+            )
+            newLTech.insert()
 
-                leadTechs = leadTech.query.all()
+            leadTechs = leadTech.query.all()
 
-                return jsonify({
-                    'success': True,
-                    'leadtechs': leadTechs
-                }), 200
-            except Exception as e:
-                print(e)
-                abort(400)
-        abort(403)
+            return jsonify({
+                'success': True,
+                'leadtechs': leadTechs
+            }), 200
+        except Exception as e:
+            print(e)
+            abort(400)
 
     # Endpoint to update information for an existing field tech
 
     @app.route('/fieldtechs/<int:id>', methods=['PATCH'])
-    def update_fieldtech(id):
-        if requires_auth('patch:fieldtech'):
-            data = request.get_json()
-            fTechUpdate = fieldTech.query.get(id)
-            try:
-                if not fTechUpdate:
-                    abort(404)
-                if data['name']:
-                    fTechUpdate.title = data['name']
-                if data['employeeID']:
-                    fTechUpdate.recipe = data['employeeID']
-                fTechUpdate.update()
+    @requires_auth('patch:fieldtech')
+    def update_fieldtech(jwt,id):
+        data = request.get_json()
 
-                fTechs = fieldTech.query.all()
+        fTechUpdate = fieldTech.query.get(id)
+        try:
+            if not fTechUpdate:
+                abort(404)
+            if data['name']:
+                fTechUpdate.title = data['name']
+            if data['employeeID']:
+                fTechUpdate.recipe = data['employeeID']
+            fTechUpdate.update()
 
-                return jsonify({
-                    'success': True,
-                    'fieldtechs': fTechs
-                }), 200
-            except Exception as e:
-                print(e)
-                abort(400)
-        abort(403)
+            fTechs = fieldTech.query.all()
+
+            return jsonify({
+                'success': True,
+                'fieldtechs': fTechs
+            }), 200
+        except Exception as e:
+            print(e)
+            abort(400)
 
     # Endpoint to update information for an existing lead tech
 
     @app.route('/leadtechs/<int:id>', methods=['PATCH'])
-    def update_leadtech(id):
-        if requires_auth('patch:leadtech'):
-            data = request.get_json()
-            lTechUpdate = leadTech.query.get(id)
-            try:
-                if not lTechUpdate:
-                    abort(404)
-                if data['name']:
-                    lTechUpdate.title = data['name']
-                if data['employeeID']:
-                    lTechUpdate.recipe = data['employeeID']
-                if data['fieldtech_ids']:
-                        lTechUpdate.fieldtech_ids = data['fieldtech_ids']
-                lTechUpdate.update()
+    @requires_auth('patch:leadtech')
+    def update_leadtech(jwt, id):
+        data = request.get_json()
 
-                lTechs = leadTech.query.all()
+        lTechUpdate = leadTech.query.get(id)
+        try:
+            if not lTechUpdate:
+                abort(404)
+            if data['name']:
+                lTechUpdate.title = data['name']
+            if data['employeeID']:
+                lTechUpdate.recipe = data['employeeID']
+            if data['fieldtech_ids']:
+                    lTechUpdate.fieldtech_ids = data['fieldtech_ids']
+            lTechUpdate.update()
 
-                return jsonify({
-                    'success': True,
-                    'fieldtechs': lTechs
-                }), 200
-            except Exception as e:
-                print(e)
-                abort(400)
-        abort(403)
+            lTechs = leadTech.query.all()
+
+            return jsonify({
+                'success': True,
+                'leadtechs': lTechs
+            }), 200
+        except Exception as e:
+            print(e)
+            abort(400)
 
     # Endpoint to delete a field tech via fieldTech.id
 
     @app.route('/fieldtechs/<int:id>', methods=['DELETE'])
-    def delete_fieldtech(id):
-        if requires_auth('delete:fieldtech'):
-            fTech = fieldTech.query.filter(fieldTech.id == id).one_or_none()
+    @requires_auth('delete:fieldtech')
+    def delete_fieldtech(jwt,id):
+        fTech = fieldTech.query.filter(fieldTech.id == id).one_or_none()
 
-            if not fTech:
-                abort(404)
-            try:
-                fTech.delete()
-                return jsonify({
-                    'success': True,
-                    'delete': id
-                }), 200
-            except Exception as e:
-                print(e)
-                abort(400)
-        abort(403)
+        if not fTech:
+            abort(404)
+        try:
+            fTech.delete()
+            return jsonify({
+                'success': True,
+                'delete': id
+            }), 200
+        except Exception as e:
+            print(e)
+            abort(400)
 
     # Endpoint to delete a lead tech via leaddTech.id
 
     @app.route('/leadtechs/<int:id>', methods=['DELETE'])
-    def delete_fieldtech(id):
-        if requires_auth('delete:leadtech'):
-            lTech = leadTech.query.filter(leadTech.id == id).one_or_none()
+    @requires_auth('delete:leadtech')
+    def delete_leadtech(jwt,id):
+        lTech = leadTech.query.filter(leadTech.id == id).one_or_none()
 
-            if not lTech:
-                abort(404)
-            try:
-                lTech.delete()
-                return jsonify({
-                    'success': True,
-                    'delete': id
-                }), 200
-            except Exception as e:
-                print(e)
-                abort(400)
-        abort(403)
+        if not lTech:
+            abort(404)
+        try:
+            lTech.delete()
+            return jsonify({
+                'success': True,
+                'delete': id
+            }), 200
+        except Exception as e:
+            print(e)
+            abort(400)
 
     # Error Handling
 
