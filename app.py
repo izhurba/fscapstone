@@ -5,16 +5,15 @@ from auth import AuthError, requires_auth
 from flask_cors import CORS
 import json
 
-CURRTOKEN = ''
-
 def create_app(test_config=None):
     app = Flask(__name__)
     setup_db(app)
     CORS(app)
 
     @app.route('/')
-    def disp_token():
-        return CURRTOKEN
+    def check_token():
+        return request.url_rule.rule
+        #fullURL = request.path
 
     @app.route('/login')
     def auth_login():
@@ -25,7 +24,8 @@ def create_app(test_config=None):
 
 
     @app.route('/fieldtechs')
-    def get_fieldtechs():
+    @requires_auth('get:fieldtech')
+    def get_fieldtechs(jwt):
         fieldTechs = fieldTech.query.all()
 
         if not fieldTechs:
@@ -39,7 +39,8 @@ def create_app(test_config=None):
     # Endpoint to get lead techs
 
     @app.route('/leadtechs')
-    def get_leadtechs():
+    @requires_auth('get:leadtech')
+    def get_leadtechs(jwt):
         leadTechs = leadTech.query.all()
 
         if not leadTechs:
