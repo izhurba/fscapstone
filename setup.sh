@@ -3,6 +3,7 @@ export DATABASE_URL="postgresql://postgres:password@localhost:5432/repairshop"
 export EXCITED="true"
 export AUTHDOMAIN="https://dev-vqzjqwjq.us.auth0.com"
 export AUTHCLIENT="TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787"
+export REDIRECTURL="http://localhost:5000/"
 
 #Chistoporuski
 export FTOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Im5MRXowNDBhMzM2cE04aEQxdmZFRiJ9.eyJpc3MiOiJodHRwczovL2Rldi12cXpqcXdqcS51cy5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NjI4MThiNmJkZDk4OTgwMDZmZDM5ZGRjIiwiYXVkIjoicmVwYWlyc2hvcCIsImlhdCI6MTY1MjgyNTM4NSwiZXhwIjoxNjUyOTA5Mzg1LCJhenAiOiJUVVdVYktPQllRWFI0b1oweHdCNENqTGp3eXBreDc4NyIsInNjb3BlIjoiIiwicGVybWlzc2lvbnMiOlsiZ2V0OmZpZWxkdGVjaCIsImdldDpsZWFkdGVjaCJdfQ.dTxRPzmGujttVKcI8Dl0kogo5EcLeiCo-GUdeh2-sgYKc7aFLGBwg5f6ra4WF66aZUeUtM2Zf4V-ti3jtl9uKH9g9jzA1pUFASbn5jevRcnUlbs16JH1sH8OxD0T2KBcyG458eSxGPhJ4-HKuelP2jkZ_qKgiJ7Fqok7zrJs_t-wXYR1LR4fsOWkZ0wpAowV03f3Lw04BccDRSkgHTGxl6kfHHBLNwJQy4k56sEYPtYWlT4dBAyvk5xwfToz7l26kPTwdgeX5xV42cG7HBQCDCdhYzyN26Z1bbvt0pT7hdV_Jk2X8mbJ8foqi58BrB0JUFgV0zh29pQ_CwUSz1Fcaw"
@@ -13,4 +14,4 @@ export STOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Im5MRXowNDBhMzM2cE04a
 
 echo "setup.sh script executed successfully!"
 
-#curl --request GET 'http://localhost:500/' -H "Authorization: Bearer ${TOKEN}" | jq .
+#curl --request GET 'http://localhost:5000/seniortechs' -H "Authorization: Bearer ${STOKEN}" | jq .

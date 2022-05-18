@@ -29,11 +29,11 @@ def create_app(test_config=None):
 
     @app.route('/login')
     def auth_login():
-        return redirect("https://dev-vqzjqwjq.us.auth0.com/authorize?response_type=token&client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&redirect_uri=http://localhost:5000/&audience=repairshop")
+        return redirect("https://dev-vqzjqwjq.us.auth0.com/authorize?response_type=token&client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&redirect_uri="+ os.environ["REDIRECTURL"] + "&audience=repairshop")
 
     @app.route('/logout')
     def auth_logout():
-        return redirect("https://dev-vqzjqwjq.us.auth0.com/v2/logout?client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&returnTo=http://localhost:5000/")
+        return redirect("https://dev-vqzjqwjq.us.auth0.com/v2/logout?client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&returnTo="+ os.environ["REDIRECTURL"])
     
     # Endpoint to get field techs
 
