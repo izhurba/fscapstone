@@ -1,10 +1,11 @@
 import os
-from urllib import response
-from flask import Flask, request, abort, jsonify, redirect
-from models import setup_db, fieldTech, leadTech, seniorTech
+from flask import Flask, request, abort, jsonify, redirect, session
+from models import setup_db, fieldTech, leadTech, seniorTech, db
 from auth import AuthError, requires_auth
 from flask_cors import CORS
-import json, requests
+from psycopg2 import errors
+import json
+
 
 def create_app(test_config=None):
     app = Flask(__name__)
@@ -20,13 +21,19 @@ def create_app(test_config=None):
         return response
 
 
+    @app.route('/')
+    def landing_page():
+        return jsonify({
+            'success': True
+        }), 200
+
     @app.route('/login')
     def auth_login():
         return redirect("https://dev-vqzjqwjq.us.auth0.com/authorize?response_type=token&client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&redirect_uri=http://localhost:5000/&audience=repairshop")
 
     @app.route('/logout')
     def auth_logout():
-        return redirect("https://dev-vqzjqwjq.us.auth0.com/v2/logout?client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&returnTo='http://localhost:5000/")
+        return redirect("https://dev-vqzjqwjq.us.auth0.com/v2/logout?client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&returnTo=http://localhost:5000/")
     
     # Endpoint to get field techs
 
@@ -34,30 +41,36 @@ def create_app(test_config=None):
     @app.route('/fieldtechs')
     @requires_auth('get:fieldtech')
     def get_fieldtechs(jwt):
-        fieldTechs = fieldTech.query.all()
+        try:
+            fieldTechs = fieldTech.query.all()
 
-        if not fieldTechs:
-            abort(404)
+            if not fieldTechs:
+                abort(404)
 
-        return jsonify({
-            'success': True,
-            'fieldtechs': [tech.format() for tech in fieldTechs]
-        }), 200
+            return jsonify({
+                'success': True,
+                'fieldtechs': [tech.format() for tech in fieldTechs]
+            }), 200
+        except Exception as e:
+            abort(403)
 
     # Endpoint to get lead techs
 
     @app.route('/leadtechs')
     @requires_auth('get:leadtech')
     def get_leadtechs(jwt):
-        leadTechs = leadTech.query.all()
+        try:
+            leadTechs = leadTech.query.all()
 
-        if not leadTechs:
-            abort(404)
+            if not leadTechs:
+                abort(404)
 
-        return jsonify({
-            'success': True,
-            'leadtechs': [tech.format() for tech in leadTechs]
-        }), 200
+            return jsonify({
+                'success': True,
+                'leadtechs': [tech.format() for tech in leadTechs]
+            }), 200
+        except Exception as e:
+            abort(403)
 
     # Endpoint to get lead techs
 
@@ -75,7 +88,7 @@ def create_app(test_config=None):
             }), 200
         except Exception as e:
             print(e)
-            abort(422)
+            abort(403)
 
 
     # Endpoint to create a new field tech
@@ -96,10 +109,9 @@ def create_app(test_config=None):
 
             return jsonify({
                 'success': True,
-                'fieldtechs': fieldTechs
+                'fieldtechs': [tech.format() for tech in fieldTechs]
             }), 200
         except Exception as e:
-            print(e)
             abort(400)
 
     # Endpoint to create a new lead tech
@@ -113,7 +125,7 @@ def create_app(test_config=None):
             newLTech = leadTech(
                 name= data['name'],
                 employeeID=data['employeeID'],
-                fieldtech_ids=['fieldtech_ids']
+                fieldtech_ids=data['fieldtech_ids']
             )
             newLTech.insert()
 
@@ -121,10 +133,9 @@ def create_app(test_config=None):
 
             return jsonify({
                 'success': True,
-                'leadtechs': leadTechs
+                'leadtechs': [tech.format() for tech in leadTechs]
             }), 200
         except Exception as e:
-            print(e)
             abort(400)
 
     # Endpoint to update information for an existing field tech
@@ -137,22 +148,21 @@ def create_app(test_config=None):
         fTechUpdate = fieldTech.query.get(id)
         try:
             if not fTechUpdate:
-                abort(404)
+                abort(400)
             if data['name']:
-                fTechUpdate.title = data['name']
+                fTechUpdate.name = data['name']
             if data['employeeID']:
-                fTechUpdate.recipe = data['employeeID']
+                fTechUpdate.employeeID = data['employeeID']
             fTechUpdate.update()
 
             fTechs = fieldTech.query.all()
 
             return jsonify({
                 'success': True,
-                'fieldtechs': fTechs
+                'fieldtechs': [tech.format() for tech in fTechs]
             }), 200
         except Exception as e:
-            print(e)
-            abort(400)
+            abort(422)
 
     # Endpoint to update information for an existing lead tech
 
@@ -164,11 +174,11 @@ def create_app(test_config=None):
         lTechUpdate = leadTech.query.get(id)
         try:
             if not lTechUpdate:
-                abort(404)
+                abort(400)
             if data['name']:
-                lTechUpdate.title = data['name']
+                lTechUpdate.name = data['name']
             if data['employeeID']:
-                lTechUpdate.recipe = data['employeeID']
+                lTechUpdate.employeeID = data['employeeID']
             if data['fieldtech_ids']:
                     lTechUpdate.fieldtech_ids = data['fieldtech_ids']
             lTechUpdate.update()
@@ -177,11 +187,10 @@ def create_app(test_config=None):
 
             return jsonify({
                 'success': True,
-                'leadtechs': lTechs
+                'leadtechs': [tech.format() for tech in lTechs]
             }), 200
         except Exception as e:
-            print(e)
-            abort(400)
+            abort(422)
 
     # Endpoint to delete a field tech via fieldTech.id
 
@@ -199,7 +208,6 @@ def create_app(test_config=None):
                 'delete': id
             }), 200
         except Exception as e:
-            print(e)
             abort(400)
 
     # Endpoint to delete a lead tech via leaddTech.id
@@ -218,7 +226,6 @@ def create_app(test_config=None):
                 'delete': id
             }), 200
         except Exception as e:
-            print(e)
             abort(400)
 
     # Error Handling
