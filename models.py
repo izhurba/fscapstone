@@ -20,7 +20,6 @@ def setup_db(app, database_path=database_path):
     app.debug = True
     db.app = app
     db.init_app(app)
-    migrate = Migrate(app, db)
     db.create_all()
 
 
