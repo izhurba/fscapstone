@@ -15,11 +15,10 @@ def create_app(test_config=None):
     @app.after_request
     def after_request(response):
         response.headers.add('Access-Control-Allow-Headers',
-                            'Content-Type,Authorization,true')
+                             'Content-Type,Authorization,true')
         response.headers.add('Access-Control-Allow-Methods',
-                            'GET,PATCH,POST,DELETE,OPTIONS')
+                             'GET,PATCH,POST,DELETE,OPTIONS')
         return response
-
 
     @app.route('/')
     def landing_page():
@@ -34,9 +33,8 @@ def create_app(test_config=None):
     @app.route('/logout')
     def auth_logout():
         return redirect("https://dev-vqzjqwjq.us.auth0.com/v2/logout?client_id=TUWUbKOBYQXR4oZ0xwB4CjLjwypkx787&returnTo="+ os.environ["REDIRECTURL"])
-    
-    # Endpoint to get field techs
 
+    # Endpoint to get field techs
 
     @app.route('/fieldtechs')
     @requires_auth('get:fieldtech')
@@ -90,7 +88,6 @@ def create_app(test_config=None):
             print(e)
             abort(403)
 
-
     # Endpoint to create a new field tech
 
     @app.route('/fieldtechs', methods=['POST'])
@@ -100,7 +97,7 @@ def create_app(test_config=None):
 
         try:
             newFTech = fieldTech(
-                name= data['name'],
+                name=data['name'],
                 employeeID=data['employeeID']
             )
             newFTech.insert()
@@ -112,6 +109,7 @@ def create_app(test_config=None):
                 'fieldtechs': [tech.format() for tech in fieldTechs]
             }), 200
         except Exception as e:
+            print(e)
             abort(400)
 
     # Endpoint to create a new lead tech
@@ -123,7 +121,7 @@ def create_app(test_config=None):
 
         try:
             newLTech = leadTech(
-                name= data['name'],
+                name=data['name'],
                 employeeID=data['employeeID'],
                 fieldtech_ids=data['fieldtech_ids']
             )
@@ -142,7 +140,7 @@ def create_app(test_config=None):
 
     @app.route('/fieldtechs/<int:id>', methods=['PATCH'])
     @requires_auth('patch:fieldtech')
-    def update_fieldtech(jwt,id):
+    def update_fieldtech(jwt, id):
         data = request.get_json()
 
         fTechUpdate = fieldTech.query.get(id)
@@ -180,7 +178,7 @@ def create_app(test_config=None):
             if data['employeeID']:
                 lTechUpdate.employeeID = data['employeeID']
             if data['fieldtech_ids']:
-                    lTechUpdate.fieldtech_ids = data['fieldtech_ids']
+                lTechUpdate.fieldtech_ids = data['fieldtech_ids']
             lTechUpdate.update()
 
             lTechs = leadTech.query.all()
@@ -196,7 +194,7 @@ def create_app(test_config=None):
 
     @app.route('/fieldtechs/<int:id>', methods=['DELETE'])
     @requires_auth('delete:fieldtech')
-    def delete_fieldtech(jwt,id):
+    def delete_fieldtech(jwt, id):
         fTech = fieldTech.query.filter(fieldTech.id == id).one_or_none()
 
         if not fTech:
@@ -214,7 +212,7 @@ def create_app(test_config=None):
 
     @app.route('/leadtechs/<int:id>', methods=['DELETE'])
     @requires_auth('delete:leadtech')
-    def delete_leadtech(jwt,id):
+    def delete_leadtech(jwt, id):
         lTech = leadTech.query.filter(leadTech.id == id).one_or_none()
 
         if not lTech:
@@ -269,8 +267,9 @@ def create_app(test_config=None):
             'error': 403,
             'message': "You are not authorized to perform this action"
         }), 403
-    
+
     return app
+
 
 app = create_app()
 
