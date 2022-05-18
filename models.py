@@ -62,7 +62,7 @@ class leadTech(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   name = db.Column(db.String, nullable=False)
   employeeID = db.Column(db.Integer, nullable=False)
-  fieldtech_ids = db.Column(db.String, db.ForeignKey(fieldTech.id), nullable=False)
+  fieldtech_ids = db.Column(db.Integer, db.ForeignKey(fieldTech.id), nullable=False)
   senior = db.relationship('seniorTech', backref='leadtech', lazy='joined', cascade='all, delete')
 
 
@@ -95,8 +95,8 @@ class seniorTech(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   name = db.Column(db.String, nullable=False)
   employeeID = db.Column(db.Integer, nullable=False)
-  fieldtech_ids = db.Column(db.String, db.ForeignKey(fieldTech.id), nullable=False)
-  leadtech_ids = db.Column(db.String, db.ForeignKey(leadTech.id), nullable=False)
+  fieldtech_ids = db.Column(db.Integer, db.ForeignKey(fieldTech.id), nullable=False)
+  leadtech_ids = db.Column(db.Integer, db.ForeignKey(leadTech.id), nullable=False)
 
 
   def __init__(self, name, employeeID, fieldtech_ids, leadtech_ids):
